@@ -100,7 +100,7 @@ public class ApplicationDbContext : DbContext{
     public DbSet<Product> Products { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder options)
         =>options.UseSqlServer(
-            "Server=docker2022;Database=Products;User Id=sa;MSSQL_SA_Password=@Sql2019;MultipleActiveResultsSets=true;Encrypt=YES,TrustServerCertificate=YES");
+            "Server=localhost;Database=Products;User Id=sa;Password=@Sql2019;MultipleActiveResultSets=true;Encrypt=YES;TrustServerCertificate=YES");
     
 }
 
