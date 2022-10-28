@@ -2,8 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<ApplicationDbContext>();//aqui estamos deixando pronto para o banco poder usar
-
+builder.Services.AddSqlServer<ApplicationDbContext>(builder.Configuration["Database:SqlServer"]);//aqui estamos deixando pronto para o banco poder usar
 
 var app = builder.Build();
 var configuration = app.Configuration;
@@ -69,6 +68,8 @@ app.MapGet("/configuration/database", (IConfiguration configuration) =>{
 
 app.Run();
 
+#region Classes do banco
+
 public static class ProductRepository{ 
 
     public static List<Product> Products {get;set;}
@@ -102,7 +103,6 @@ public class Tag{
     public int Id { get; set; }
     public string Name { get; set; }
     public string ProductId { get; set; }
-
 }
 
 public class Product{
@@ -114,12 +114,16 @@ public class Product{
     public int CategoryId { get; set;}
     public List<Tag> Tags { get; set; }
 }
-
 /*criando conexão com o banco de dados*/
 public class ApplicationDbContext : DbContext{
 
     public DbSet<Product> Products { get; set; }
 
+    //aqui em baixo tem um construtor para o banco de dados
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options){
+
+    }
+    
 // essa função é usada para definir os criterios das variaveis deuma tabela
     protected override void OnModelCreating(ModelBuilder builder){
             builder.Entity<Product>()
@@ -130,11 +134,8 @@ public class ApplicationDbContext : DbContext{
             .Property(p => p.Code).HasMaxLength(20).IsRequired();
         }
 
+#endregion
 
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-        =>options.UseSqlServer(
-            "Server=localhost;Database=Products;User Id=sa;Password=@Sql2019;MultipleActiveResultSets=true;Encrypt=YES;TrustServerCertificate=YES");
-    
 }
 
 
