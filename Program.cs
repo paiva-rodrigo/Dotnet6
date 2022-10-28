@@ -35,13 +35,21 @@ app.MapGet("/getproductbyheader", (HttpRequest request)=>{
 });
 
 
-
-
 /*Metodos principais abaixo*/
 /*Parte de Post da aplicação usada para postar dados da aplicação*/
-app.MapPost("/products", (Product product) => {
-    ProductRepository.Add(product);
+app.MapPost("/products", (ProductRequest productRequest, ApplicationDbContext context ) => {
+    var category = context.Categories.Where(c => c.Id == productRequest.CategoryId).First();
+    var product = new Product{
+        Code = productRequest.Code,
+        Name = productRequest.Name,
+        Description = productRequest.Description,
+        Category = category
+    };
+    context.Products.Add(product);
+    context.SaveChanges();
+    return Results.Created($"/products/{product.Id}", product.Id);
 });
+
 /*get que é usado para pegar um dado especifico, ele retorna um do tipo produto*/
 //api.app.com/users/{code}
 app.MapGet("/products/{code}", ([FromRoute] string code) => {
@@ -118,6 +126,7 @@ public class Product{
 public class ApplicationDbContext : DbContext{
 
     public DbSet<Product> Products { get; set; }
+    public DbSet<Category> Categories { get; set; }
 
     //aqui em baixo tem um construtor para o banco de dados
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options){
@@ -132,11 +141,13 @@ public class ApplicationDbContext : DbContext{
             .Property(p => p.Name).HasMaxLength(120).IsRequired();
             builder.Entity<Product>()
             .Property(p => p.Code).HasMaxLength(20).IsRequired();
+            builder.Entity<Category>()
+            .ToTable("Categories");
         }
-
+}
 #endregion
 
-}
+
 
 
 
