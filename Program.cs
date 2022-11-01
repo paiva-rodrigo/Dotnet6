@@ -45,6 +45,15 @@ app.MapPost("/products", (ProductRequest productRequest, ApplicationDbContext co
         Description = productRequest.Description,
         Category = category
     };
+
+    if(productRequest.Tags != null){
+        product.Tags = new List<Tag>();
+        foreach (var item in productRequest.Tags)
+        {
+            product.Tags.Add(new Tag{Name = item});
+        }
+    }
+
     context.Products.Add(product);
     context.SaveChanges();
     return Results.Created($"/products/{product.Id}", product.Id);
@@ -52,27 +61,59 @@ app.MapPost("/products", (ProductRequest productRequest, ApplicationDbContext co
 
 /*get que é usado para pegar um dado especifico, ele retorna um do tipo produto*/
 //api.app.com/users/{code}
-app.MapGet("/products/{code}", ([FromRoute] string code) => {
-    var product = ProductRepository.GetBy(code);
-    return product;
+app.MapGet("/products/{id}", ([FromRoute] int id, ApplicationDbContext context) => {
+    var product = context.Products
+    .Include(p => p.Category)
+    .Include(p => p.Tags)
+    .Where(p=>p.Id == id).First();
+
+    if(product != null){
+        Console.WriteLine("Product found");
+        return Results.Ok(product);
+    }
+    return Results.NotFound();
 });
+
+
 /*metodo usado para fazer o put, mudar o dado de um determinado numero*/
-app.MapPut("/products", (Product product) => {
-    var productSaved = ProductRepository.GetBy(product.Code);
-    productSaved.Name = product.Name;
-});
+/*g
+app.MapPut("/products/{id}", ([FromRoute] int id,ProductRequest productRequest, ApplicationDbContext context) => {
+     var category = context.Categories.Where(c => c.Id == productRequest.CategoryId).First();
+    var product = context.Products;
+    .Include(p => p.Category)
+    .Include(p => p.Tags)
+    .Where(p=>p.Id == id).First();
+    
+    product.Code = productRequest.Code;
+    product.Name = productRequest.Name;
+    product.Description = productRequest.Description;
+    product.Category = category;
+    product.Tags = new List<Tag>();
+    if(productRequest.Tags != null){
+        product.Tags = new List<Tag>();
+        foreach (var item in productRequest.Tags)
+        {
+            product.Tags.Add(new Tag{Name = item});
+        }
+    }
+
+    context.SaveChanges();
+    return Results.Ok();
+});*/
 /*Delete usado para deletar um dados*/
-app.MapDelete("/products/{code}",([FromRoute] string code) => {
-    var productSaved = ProductRepository.GetBy(code);
-    ProductRepository.Remove(productSaved);
-});
+/*
+app.MapDelete("/products/{id}",([FromRoute] int id, ApplicationDbContext context) => {
+    var product = context.Products.Where(p=> p.Id ==id).First();
+    context.Product.Remove(product);
+    context.SaveChanges();
+    return Results.Ok();
+});*/
 
 
 //Agora vai retornar o nome do banco de dados
 app.MapGet("/configuration/database", (IConfiguration configuration) =>{
     return Results.Ok($"{configuration["database:connection"]} / {configuration["database:port"]}");
 });
-
 
 app.Run();
 

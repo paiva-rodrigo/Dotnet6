@@ -26,16 +26,7 @@ namespace dotnet6.Migrations
                 oldType: "int",
                 oldNullable: true);
 
-            migrationBuilder.AddColumn<int>(
-                name: "ProductId1",
-                table: "Tag",
-                type: "int",
-                nullable: true);
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Tag_ProductId1",
-                table: "Tag",
-                column: "ProductId1");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Tag_Products_ProductId1",
